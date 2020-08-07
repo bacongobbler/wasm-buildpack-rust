@@ -1,0 +1,24 @@
+#!/bin/sh
+
+BUILD_ROOT=$1
+
+indent() {
+  sed -u 's/^/       /'
+}
+
+message() {
+  echo "-----> $*"
+}
+
+cd $BUILD_ROOT
+
+# Install the wasm32-unknown-unknown target
+message "Adding wasm32-unknown-unknown target"
+rustup target add wasm32-unknown-unknown
+
+# Install wasmtime
+curl https://github.com/bytecodealliance/wasmtime/releases/download/v0.19.0/wasmtime-v0.19.0-aarch64-linux.tar.xz | tar xz
+
+# Build the project
+message "compiling"
+cargo build --release --target wasm32-unknown-unknown

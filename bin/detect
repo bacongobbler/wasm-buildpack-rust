@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# this pack is valid for apps with Cargo.toml in the root
+if [ -f $1/Cargo.toml ]; then
+  echo "Rust"
+  exit 0
+else
+  exit 1
+fi
