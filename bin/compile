@@ -1,6 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
-BUILD_ROOT=$1
+BUILD_DIR=${1:-}
+CACHE_DIR=${2:-}
+ENV_DIR=${3:-}
 
 indent() {
   sed -u 's/^/       /'
@@ -10,14 +12,72 @@ message() {
   echo "-----> $*"
 }
 
-cd $BUILD_ROOT
+# Use the default rust channel. Users can change this by writing a
+# `rust-toolchain` file in their BUILD_DIR.
+CHANNEL=stable
 
-# Install the wasm32-unknown-unknown target
-message "Adding wasm32-unknown-unknown target"
-rustup target add wasm32-unknown-unknown
+# Load our toolchain configuration, if any was specified.
+if [ -f "$BUILD_DIR/rust-toolchain" ]; then
+    CHANNEL="$(cat "$BUILD_DIR/rust-toolchain")"
+fi
+
+# Our rustup installation.
+export RUSTUP_HOME="$CACHE_DIR/rustup"
+
+# Our cargo installation.  We implicitly trust Rustup and Cargo
+# to do the right thing when new versions are released.
+export CARGO_HOME="$CACHE_DIR/cargo"
+
+# Include binaries installed by cargo and rustup in our path.
+PATH="\$CARGO_HOME/bin:\$PATH"
+
+message "using rust-toolchain channel $CHANNEL"
+
+# Switch to our cache directory.
+cd "$CACHE_DIR"
+
+# Make sure we have an appropriate Rust toolchain installed.
+if [ -d "$CARGO_HOME" ]; then
+    message "Checking for new releases of Rust $CHANNEL channel"
+    # It's possible that $CHANNEL has changed, or the `stable` channel has updated.
+    rustup self update
+    rustup update "$CHANNEL"
+    rustup default "$CHANNEL"
+    message "Adding wasm32-unknown-unknown target"
+    rustup target add wasm32-unknown-unknown --toolchain "$CHANNEL"
+else
+    message "Downloading rustup"
+    curl https://sh.rustup.rs -sSf > rustup.sh
+    chmod u+x rustup.sh
+    message "Using rustup to install Rust channel $CHANNEL"
+    ./rustup.sh -y --default-toolchain "$CHANNEL"
+    # Install the wasm32-unknown-unknown target
+    message "Adding wasm32-unknown-unknown target"
+    ./rustup.sh target add wasm32-unknown-unknown --toolchain "$CHANNEL"
+    rm rustup.sh
+fi
+
+if [ ! -x "$CARGO_HOME/bin/rustc" ]; then
+    echo "failed: Cannot find Rust binaries at $CARGO_HOME"
+    exit 1
+fi
+
+# This is where we will cache our Rust output.  Note the suggestions at
+# https://github.com/alexcrichton/cargo/commit/014765f788ca1c2476936835ca32cc2746f99b42
+# which describe how this needs to be named.
+export CARGO_TARGET_DIR="$CACHE_DIR/target"
+
+
+mesasge "Building application using Cargo"
+
+# Build the project
+cd $BUILD_DIR
 
 # Install wasmtime
-curl https://github.com/bytecodealliance/wasmtime/releases/download/v0.19.0/wasmtime-v0.19.0-aarch64-linux.tar.xz | tar xz
+wget https://github.com/bytecodealliance/wasmtime/releases/download/v0.19.0/wasmtime-v0.19.0-aarch64-linux.tar.xz
+tar -xf wasmtime-v0.19.0-aarch64-linux.tar.xz
+mv wasmtime-v0.19.0-aarch64-linux/wasmtime /bin/wasmtime
+rm -rf wasmtime-*
 
 # Build the project
 message "compiling"
