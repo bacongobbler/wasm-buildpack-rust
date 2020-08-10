@@ -67,18 +67,18 @@ fi
 # which describe how this needs to be named.
 export CARGO_TARGET_DIR="$CACHE_DIR/target"
 
-
-mesasge "Building application using Cargo"
-
-# Build the project
-cd $BUILD_DIR
-
-# Install wasmtime
-wget https://github.com/bytecodealliance/wasmtime/releases/download/v0.19.0/wasmtime-v0.19.0-aarch64-linux.tar.xz
-tar -xf wasmtime-v0.19.0-aarch64-linux.tar.xz
-mv wasmtime-v0.19.0-aarch64-linux/wasmtime /bin/wasmtime
+# install wasmtime
+mkdir $HOME/bin
+curl -sSL https://github.com/bytecodealliance/wasmtime/releases/download/v0.19.0/wasmtime-v0.19.0-x86_64-linux.tar.xz -o wasmtime-v0.19.0-x86_64-linux.tar.xz
+tar -xf wasmtime-v0.19.0-x86_64-linux.tar.xz
+mv wasmtime-v0.19.0-x86_64-linux/wasmtime $HOME/bin/wasmtime
 rm -rf wasmtime-*
 
+# add wasmtime to $PATH
+mkdir $BUILD_DIR/.profile.d
+echo 'PATH=$PATH:$HOME/bin' > $BUILD_DIR/.profile.d/wasm.sh
+
 # Build the project
-message "compiling"
+message "Building application using Cargo"
+cd $BUILD_DIR
 cargo build --release --target wasm32-unknown-unknown
