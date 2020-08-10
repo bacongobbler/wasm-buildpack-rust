@@ -44,7 +44,7 @@ if [ -d "$CARGO_HOME" ]; then
     rustup update "$CHANNEL"
     rustup default "$CHANNEL"
     message "Adding wasm32-unknown-unknown target"
-    rustup target add wasm32-unknown-unknown --toolchain "$CHANNEL"
+    rustup -y target add wasm32-unknown-unknown --toolchain "$CHANNEL"
 else
     message "Downloading rustup"
     curl https://sh.rustup.rs -sSf > rustup.sh
@@ -53,7 +53,7 @@ else
     ./rustup.sh -y --default-toolchain "$CHANNEL"
     # Install the wasm32-unknown-unknown target
     message "Adding wasm32-unknown-unknown target"
-    ./rustup.sh target add wasm32-unknown-unknown --toolchain "$CHANNEL"
+    ./rustup.sh -y target add wasm32-unknown-unknown --toolchain "$CHANNEL"
     rm rustup.sh
 fi
 
