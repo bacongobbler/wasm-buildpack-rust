@@ -50,10 +50,7 @@ else
     curl https://sh.rustup.rs -sSf > rustup.sh
     chmod u+x rustup.sh
     message "Using rustup to install Rust channel $CHANNEL"
-    ./rustup.sh -y --default-toolchain "$CHANNEL"
-    # Install the wasm32-unknown-unknown target
-    message "Adding wasm32-unknown-unknown target"
-    ./rustup.sh -y --target wasm32-unknown-unknown
+    ./rustup.sh -y --default-toolchain "$CHANNEL" --target wasm32-unknown-unknown
     rm rustup.sh
 fi
 
