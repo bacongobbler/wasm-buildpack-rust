@@ -29,7 +29,7 @@ export RUSTUP_HOME="$CACHE_DIR/rustup"
 export CARGO_HOME="$CACHE_DIR/cargo"
 
 # Include binaries installed by cargo and rustup in our path.
-PATH="\$CARGO_HOME/bin:\$PATH"
+export PATH="$CARGO_HOME/bin:$PATH"
 
 message "using rust-toolchain channel $CHANNEL"
 
